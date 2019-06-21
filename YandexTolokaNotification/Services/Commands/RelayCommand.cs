@@ -7,28 +7,31 @@ namespace YandexTolokaNotification.Services.Commands
 {
     public class RelayCommand : ICommand
     {
-        Action<object> execute;
-        Func<object, bool> canExecute;
-        public event EventHandler CanExecuteChanged { add { CommandManager.RequerySuggested += value; } remove { CommandManager.RequerySuggested -= value; } }
+        private readonly Action<object> _execute;
+        private readonly Predicate<object> _canExecute;
+
+        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
+        {
+            if (execute == null) throw new ArgumentNullException("execute");
+
+            _execute = execute;
+            _canExecute = canExecute;
+        }
 
         public bool CanExecute(object parameter)
         {
-            if (canExecute != null)
-            {
-                return canExecute.Invoke(parameter);
-            }
-            return true;
+            return _canExecute == null || _canExecute(parameter);
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
         public void Execute(object parameter)
         {
-            if (execute != null)
-                execute.Invoke(parameter);
-        } 
-        public RelayCommand(Action<object> executeAction, Func<object, bool> canExecute)
-        {
-            this.canExecute = canExecute;
-            this.execute = executeAction;
+            _execute(parameter ?? "<N/A>");
         }
     }
 }

@@ -7,6 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Label DataContext="" Content="Password" HorizontalAlignment="Center" Margin="0,191,0,0" VerticalAlignment="Top"/>
+        <Label Content="Login" HorizontalAlignment="Center" Margin="0,99,0,0" VerticalAlignment="Top"/>
 
+        <TextBox Text="{Binding Path=Email}" HorizontalAlignment="Center" Height="23" Margin="0,130,0,0"   VerticalAlignment="Top" Width="120"/>
+        <TextBox Text="{Binding Path=Password}" HorizontalAlignment="Center" Height="23" Margin="0,222,0,0"   VerticalAlignment="Top" Width="120"/>
+        <Button Command="{Binding LoginCommand}" Content="login" Width="200" Height="60" Margin="300,308,300,66.04"  />
     </Grid>
 </Window>
