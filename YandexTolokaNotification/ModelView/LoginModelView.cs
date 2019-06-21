@@ -33,6 +33,20 @@ namespace YandexTolokaNotification.ModelView
         {
             proxys = GetProxyServers();
             LoginCommand = new RelayCommand(o=>Login( new object()));
+            InitiateUser();
+           
+        }
+        public void  InitiateUser()
+        {
+            if (File.Exists("user.data"))
+            {
+                using (FileStream fs = new FileStream("user.data", FileMode.Open))
+                {
+                    User user =  (User)bf.Deserialize(fs);
+                    Email = user.Email;
+                    Password = user.Password;
+                }
+            }  
         }
         public void Login(object obj)
         {
