@@ -6,18 +6,26 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:YandexTolokaNotification.Views"
         mc:Ignorable="d"
-        Title="TaskViews" Height="450" Width="800">
+        Title="TaskViews" ResizeMode="NoResize"  
+    WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <Grid>
-        <DataGrid Margin="532,33,46,153.04" Name="AllTasks" ItemsSource="{Binding Path = FullTasks}" 
-            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}" 
-			AutoGenerateColumns="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <ListView Grid.Column="2" Name="AllTasks" ItemsSource="{Binding Path = FullTasks}" 
+            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}">
             <e:Interaction.Triggers>
                 <e:EventTrigger   EventName="Selected" >
                     <e:InvokeCommandAction Command="{  Binding  AddTaskCommand}" />
+                </e:EventTrigger> 
+                <e:EventTrigger   EventName="SelectionChanged" >
+                    <e:InvokeCommandAction Command="{  Binding  AddTaskCommand}" />
                 </e:EventTrigger>
             </e:Interaction.Triggers>
-        </DataGrid>
-        <DataGrid Margin="39,33,539,153.04" Name="NeedTasks" ItemsSource="{Binding Path = NeedlyTask}" 
+        </ListView>
+        <DataGrid  Grid.Column="0"   Name="NeedTasks" ItemsSource="{Binding Path = NeedlyTask}" 
             SelectedItem="{Binding Path = ChoosenNeedTask, Mode=TwoWay}" 
 			AutoGenerateColumns="True">
             <e:Interaction.Triggers>
@@ -27,8 +35,8 @@
             </e:Interaction.Triggers>
         </DataGrid>
         
-        <TextBox Text="{Binding Path=CustomTitle}" HorizontalAlignment="Center" Height="23" Margin="0,119,0,0"  VerticalAlignment="Top" Width="120"/>
-        <Button Command="{Binding Path=AddCustomCommand}" Content="AddCustomTask" HorizontalAlignment="Center" Margin="0,147,0,0" VerticalAlignment="Top"/>
-        <Button Command="{Binding Path=ListenCommand}" Content="Listen" HorizontalAlignment="Center" Margin="0,321,0,0" VerticalAlignment="Top"/>
+        <TextBox Text="{Binding Path=CustomTitle}" Grid.Column="1" HorizontalAlignment="Center" Height="23" Margin="0,119,0,0"  VerticalAlignment="Top" Width="120"/>
+        <Button Command="{Binding Path=AddCustomCommand}" Grid.Column="1" Content="AddCustomTask" HorizontalAlignment="Center" Margin="0,147,0,0" VerticalAlignment="Top"/>
+        <Button Command="{Binding Path=ListenCommand}"  Grid.Column="1" Content="Listen" HorizontalAlignment="Center" Margin="0,321,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

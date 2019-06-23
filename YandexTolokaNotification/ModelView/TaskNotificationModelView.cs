@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using YandexTolokaNotification.Extensions;
+using YandexTolokaNotification.Model;
 using YandexTolokaNotification.Services.Abstracts;
 using YandexTolokaNotification.Services.Commands;
 
@@ -16,22 +17,22 @@ namespace YandexTolokaNotification.ModelView
     public class TaskNotificationModelView : BaseViewModel
     {
         private FirefoxDriver _driver;
-        private List<string> _fullTask = new List<string>();
-        private List<string> _needlyTask;
-        private string _customTitle;
-        private string _choosenFullTask;
-        private string _choosenNeedTask;
+        private List<StringWrapper> _fullTask ;
+        private List<StringWrapper> _needlyTask = new List<StringWrapper>();
+        private string _customTitle = "Нет текущей задачи? Не беда, добавьте её сами.";
+        private StringWrapper _choosenFullTask;
+        private StringWrapper _choosenNeedTask;
         private Boolean _clock;
-        public List<string> FullTasks { get => _fullTask; set { _fullTask = value; OnPropertyChanged("FullTasks"); } }
+        public List<StringWrapper> FullTasks { get => _fullTask; set { _fullTask = value; OnPropertyChanged("FullTasks"); } }
 
-        public List<string> NeedlyTask { get => _needlyTask; set { _needlyTask = value; OnPropertyChanged("NeedlyTask"); } }
+        public List<StringWrapper> NeedlyTask { get => _needlyTask; set { _needlyTask = value; OnPropertyChanged("NeedlyTask"); } }
         public string CustomTitle { get => _customTitle; set { _customTitle = value; OnPropertyChanged("CustomTitle"); } }
         public ICommand ListenCommand { get; set; }
         public ICommand AddCustomCommand { get; set; }
         public ICommand AddTaskCommand { get; set; }
         public ICommand RemoveTaskCommand { get; set; }
-        public string ChoosenNeedTask { get => _choosenNeedTask; set { _choosenNeedTask = value; OnPropertyChanged("ChoosenNeedTask"); } }
-        public string ChoosenFullTask { get => _choosenFullTask; set { _choosenFullTask = value; OnPropertyChanged("ChoosenFullTask"); } }
+        public StringWrapper ChoosenNeedTask { get => _choosenNeedTask; set { _choosenNeedTask = value; OnPropertyChanged("ChoosenNeedTask"); } }
+        public StringWrapper ChoosenFullTask { get => _choosenFullTask; set { _choosenFullTask = value; OnPropertyChanged("ChoosenFullTask"); } }
    
 
         public TaskNotificationModelView(FirefoxDriver driver)
@@ -40,14 +41,15 @@ namespace YandexTolokaNotification.ModelView
             ListenCommand = new RelayCommand(Listen);
             InitializeList();
         }
-        private List<string> GetTasks()
+        private List<StringWrapper> GetTasks()
         {
-            List<string> tasks = new List<string>();
+            List<StringWrapper> tasks = new List<StringWrapper>();
             var lis =  _driver.FindElementsByClassName("tutorial-tasks-page__snippets");
             foreach(var li in lis)
             {
-                tasks.Add(li.FindElement(By.ClassName("snippet__title")).Text);
-            }
+                
+                tasks.Add(new StringWrapper(li.FindElement(By.ClassName("snippet__title")).Text));
+            } 
             return tasks;
         }
         private void InitializeList()
@@ -67,14 +69,14 @@ namespace YandexTolokaNotification.ModelView
         }
         public void AddCustom(object obj)
         {
-            _fullTask.Add(CustomTitle);
+            _fullTask.Add(new StringWrapper(CustomTitle));
         }
         public void Listen(object obj)
         {
              
             while (_clock){
 
-                List<string> Tasks = GetTasks();
+                List<StringWrapper> Tasks = GetTasks();
                 var compareTasks =  NeedlyTask.GetCompareElement(Tasks);
                 if (compareTasks.Count>0)
                 { 

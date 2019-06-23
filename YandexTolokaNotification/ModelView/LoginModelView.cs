@@ -135,7 +135,7 @@ namespace YandexTolokaNotification.ModelView
         }
         private void LoginBySelf(FirefoxDriver driver)
         {
-
+            WaitUntilElementVisible(driver, By.ClassName("passp-content"));
             var wrap = driver.FindElement(By.ClassName("passp-content"));
             var wrapForContent = wrap.FindElement(By.ClassName("passp-auth-content"));
             var wrapForPassword = wrapForContent.FindElement(By.ClassName("passp-login-form"));
