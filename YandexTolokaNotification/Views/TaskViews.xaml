@@ -2,11 +2,33 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:e="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:YandexTolokaNotification.Views"
         mc:Ignorable="d"
         Title="TaskViews" Height="450" Width="800">
     <Grid>
+        <DataGrid Margin="532,33,46,153.04" Name="AllTasks" ItemsSource="{Binding Path = FullTasks}" 
+            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}" 
+			AutoGenerateColumns="True">
+            <e:Interaction.Triggers>
+                <e:EventTrigger   EventName="Selected" >
+                    <e:InvokeCommandAction Command="{  Binding  AddTaskCommand}" />
+                </e:EventTrigger>
+            </e:Interaction.Triggers>
+        </DataGrid>
+        <DataGrid Margin="39,33,539,153.04" Name="NeedTasks" ItemsSource="{Binding Path = NeedlyTask}" 
+            SelectedItem="{Binding Path = ChoosenNeedTask, Mode=TwoWay}" 
+			AutoGenerateColumns="True">
+            <e:Interaction.Triggers>
+                <e:EventTrigger   EventName="Selected" >
+                    <e:InvokeCommandAction Command="{  Binding  RemoveTaskCommand}" />
+                </e:EventTrigger>
+            </e:Interaction.Triggers>
+        </DataGrid>
         
+        <TextBox Text="{Binding Path=CustomTitle}" HorizontalAlignment="Center" Height="23" Margin="0,119,0,0"  VerticalAlignment="Top" Width="120"/>
+        <Button Command="{Binding Path=AddCustomCommand}" Content="AddCustomTask" HorizontalAlignment="Center" Margin="0,147,0,0" VerticalAlignment="Top"/>
+        <Button Command="{Binding Path=ListenCommand}" Content="Listen" HorizontalAlignment="Center" Margin="0,321,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>
