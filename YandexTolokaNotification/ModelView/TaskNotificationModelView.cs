@@ -72,7 +72,7 @@ namespace YandexTolokaNotification.ModelView
         public void Listen(object obj)
         {
              
-            while (true){
+            while (_clock){
 
                 List<string> Tasks = GetTasks();
                 var compareTasks =  NeedlyTask.GetCompareElement(Tasks);

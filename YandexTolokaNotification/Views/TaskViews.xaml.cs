@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenQA.Selenium.Firefox;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -9,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using YandexTolokaNotification.ModelView;
 
 namespace YandexTolokaNotification.Views
 {
@@ -17,9 +19,10 @@ namespace YandexTolokaNotification.Views
     /// </summary>
     public partial class TaskViews : Window
     {
-        public TaskViews()
+        public TaskViews(FirefoxDriver driver)
         {
             InitializeComponent();
+            this.DataContext = new TaskNotificationModelView(driver);
         }
          
     }

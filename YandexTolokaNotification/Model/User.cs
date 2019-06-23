@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YandexTolokaNotification.Model.Enums;
 
 namespace YandexTolokaNotification.Model
 {
@@ -9,10 +10,12 @@ namespace YandexTolokaNotification.Model
     {
         public string Email;
         public string Password;
-        public User(string Email, string password)
+        public UserStateLogin  UST;
+        public User(string Email, string password,UserStateLogin state)
         {
             this.Email = Email;
             this.Password = password;
+            this.UST = state;
         }
     }
 }

@@ -13,8 +13,10 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 using YandexTolokaNotification.Model;
+using YandexTolokaNotification.Model.Enums;
 using YandexTolokaNotification.Services.Abstracts;
 using YandexTolokaNotification.Services.Commands;
+using YandexTolokaNotification.Views;
 
 namespace YandexTolokaNotification.ModelView
 {
@@ -22,35 +24,49 @@ namespace YandexTolokaNotification.ModelView
     {
         private string _email = "Please input your email";
         private string _password = "Please input your password";
+        private Login _view;
         private List<string> proxys;
         private Random r = new Random();
+        private UserStateLogin _stateLogin;
         private BinaryFormatter bf = new BinaryFormatter();
         public string Email { get => _email; set { _email = value; OnPropertyChanged("Email"); } }
         public string Password { get => _password; set { _password = value; OnPropertyChanged("Password"); } }
-        public ICommand LoginCommand { get; set; }
+
+         public UserStateLogin StateLogin { get=>_stateLogin; set { _stateLogin = value;OnPropertyChanged("StateLogin"); } }
+        public ICommand LoginCommand { get; set; } 
 
 
-        public LoginModelView()
+        public LoginModelView(Login view)
         {
             proxys = GetProxyServers();
-            LoginCommand = new RelayCommand(o => Login(new object()));
+            LoginCommand = new RelayCommand(o => Login(new object())); 
             InitiateUser();
+            _view = view;
 
         }
-        public void InitiateUser()
+        
+        private void InitiateUser()
         {
             if (File.Exists("user.data"))
             {
-                using (FileStream fs = new FileStream("user.data", FileMode.Open))
+                try
                 {
-                    User user = (User)bf.Deserialize(fs);
-                    Email = user.Email;
-                    Password = user.Password;
+                    using (FileStream fs = new FileStream("user.data", FileMode.Open))
+                    {
+                        User user = (User)bf.Deserialize(fs);
+                        Email = user.Email;
+                        Password = user.Password;
+                        StateLogin = user.UST;
+                    }
+                } catch (Exception ex)
+                {
+
                 }
             }
         }
+       
         public void Login(object obj)
-        {
+        { 
             int index;
             if (obj is int) {
                 index = (int)obj;
@@ -59,6 +75,7 @@ namespace YandexTolokaNotification.ModelView
             {
                 index = 0;
             }
+           
             try
             {
                 FirefoxOptions options = new FirefoxOptions();
@@ -72,12 +89,17 @@ namespace YandexTolokaNotification.ModelView
 
                     FirefoxDriver driver = new FirefoxDriver(FirefoxDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(5));
                     LoginInAccount(driver);
+                    TaskViews tw =  new TaskViews(driver) ;
+                    tw.Show();
+                    _view.Close();
                 }
+                
             }
             catch (Exception ex)
             {
                 Login(++index);
             }
+            
 
 
         }
@@ -85,22 +107,59 @@ namespace YandexTolokaNotification.ModelView
         {
             try
             {
-                User user = new User(_email, _password);
+                User user = new User(_email, _password, StateLogin);
 
                 using (FileStream fs = new FileStream("user.data", FileMode.Create))
                 {
-
                     bf.Serialize(fs, user);
                 }
-                By formGroup = By.ClassName("form-group");
-                By inputTag = By.TagName("input");
                 By header_login_but = By.ClassName("header-login");
-                By GoogleAuth = By.ClassName("passp-social-block__list-item");
                 driver.Navigate().GoToUrl("https://toloka.yandex.ru/");
                 WaitUntilElementClickable(driver, header_login_but);
                 driver.FindElement(header_login_but).Click();
-                WaitUntilElementClickable(driver, GoogleAuth);
-                driver.FindElements(GoogleAuth)[2].Click();
+                if (((int)StateLogin) == 0)
+                {
+                    GoogleAuth(driver);
+                }
+                else if (((int)StateLogin) == 2)
+                {
+                    LoginBySelf(driver);
+                }
+            }catch(Exception ex)
+            {
+                driver.Quit();
+
+                throw ;
+            }
+
+        }
+        private void LoginBySelf(FirefoxDriver driver)
+        {
+
+            var wrap = driver.FindElement(By.ClassName("passp-content"));
+            var wrapForContent = wrap.FindElement(By.ClassName("passp-auth-content"));
+            var wrapForPassword = wrapForContent.FindElement(By.ClassName("passp-login-form"));
+            var wrapInsideForm = wrapForPassword.FindElement(By.ClassName("passp-form-field"));
+            var wrapInput = wrapInsideForm.FindElement(By.ClassName("passp-form-field__input"));
+            wrapInput.FindElement(By.TagName("input")).SendKeys(_email);
+            driver.FindElementByClassName("passp-sign-in-button")
+                .FindElements(By.TagName("button"))[0].Click();
+            var passwordInput = By.Id("passp-field-passwd");
+            WaitUntilElementClickable(driver, passwordInput);
+            driver.FindElement(passwordInput).SendKeys(_password);
+            driver.FindElement(By.ClassName("passp-sign-in-button")).FindElement(By.TagName("button")).Click();
+            WaitUntilElementVisible(driver, By.ClassName("snippets"));
+        }
+        private void GoogleAuth(FirefoxDriver driver)
+        {
+            try { 
+                
+                By formGroup = By.ClassName("form-group");
+                By inputTag = By.TagName("input"); 
+                By GoogleAuthDiv = By.ClassName("passp-social-block__list-item");
+                 
+                WaitUntilElementClickable(driver, GoogleAuthDiv);
+                driver.FindElements(GoogleAuthDiv)[2].Click();
                 var windows = driver.WindowHandles.ToList();
                 driver.SwitchTo().Window(windows[1]);
 
@@ -113,9 +172,11 @@ namespace YandexTolokaNotification.ModelView
 
                 driver.FindElement(By.Id("identifierNext")).Click();
                 Thread.Sleep(1200);
-                if (driver.FindElement(By.Id("captchaimg")).GetProperty("src") != null) {
+                if (driver.FindElement(By.Id("captchaimg")).GetProperty("src") != null)
+                {
                     MessageBox.Show("Вылезла капча, пожалуйста откройте браузер и введите её и нажмите продолжить, и только потом закройте это окно.");
-                } var inputs = driver.FindElements(inputTag);
+                }
+                var inputs = driver.FindElements(inputTag);
 
                 foreach (var i in inputs)
                 {
@@ -139,6 +200,7 @@ namespace YandexTolokaNotification.ModelView
                 driver.Quit();
                 throw new Exception("Exception", ex);
             }
+           
         }
         public IWebElement WaitUntilElementClickable(FirefoxDriver driver, By elementLocator, int timeout = 60)
         {

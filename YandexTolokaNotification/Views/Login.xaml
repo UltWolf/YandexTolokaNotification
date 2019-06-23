@@ -2,16 +2,36 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:l ="clr-namespace:YandexTolokaNotification.Services.Converters"
+         xmlns:e="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:YandexTolokaNotification"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Label DataContext="" Content="Password" HorizontalAlignment="Center" Margin="0,191,0,0" VerticalAlignment="Top"/>
-        <Label Content="Login" HorizontalAlignment="Center" Margin="0,99,0,0" VerticalAlignment="Top"/>
+        <Grid.Resources>
+            <l:EnumBooleanConverter x:Key="enumBooleanConverter" />
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Label DataContext="" Grid.Column="1" Content="Password" HorizontalAlignment="Center" Margin="0,191,0,0" VerticalAlignment="Top"/>
+        <Label Content="Login"  Grid.Column="1" HorizontalAlignment="Center" Margin="0,99,0,0" VerticalAlignment="Top"/>
 
-        <TextBox Text="{Binding Path=Email}" HorizontalAlignment="Center" Height="23" Margin="0,130,0,0"   VerticalAlignment="Top" Width="120"/>
-        <TextBox Text="{Binding Path=Password}" HorizontalAlignment="Center" Height="23" Margin="0,222,0,0"   VerticalAlignment="Top" Width="120"/>
-        <Button Command="{Binding LoginCommand}" Content="login" Width="200" Height="60" Margin="300,308,300,66.04"  />
+        <TextBox  Grid.Column="1" Text="{Binding Path=Email}" HorizontalAlignment="Center" Height="23" Margin="0,130,0,0"   VerticalAlignment="Top" Width="120"/>
+        <TextBox   Grid.Column="1" Text="{Binding Path=Password}" HorizontalAlignment="Center" Height="23" Margin="0,222,0,0"   VerticalAlignment="Top" Width="120"/>
+        <Button  Grid.Column="1" Command="{Binding LoginCommand}" Content="login" Width="200" Height="60" Margin="33.333,280,33.333,94.04"  />
+        <StackPanel   Grid.Column="2" VerticalAlignment="Center">
+            <RadioButton GroupName="Login" IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=GoogleAuth, Mode=TwoWay}">Google</RadioButton>
+            <RadioButton GroupName="Login" IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=AuthBySelf, Mode=TwoWay}">
+              
+                Byself Log</RadioButton>
+            <RadioButton  GroupName="Login" Command="{Binding Path=ChangeCommand}"  IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=CookieAuth, Mode=TwoWay}">
+                CookieAuth
+            </RadioButton>
+            <RadioButton GroupName="Login"  IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=FaceBookAuth, Mode=TwoWay}">Facebook</RadioButton>
+        </StackPanel>
     </Grid>
 </Window>

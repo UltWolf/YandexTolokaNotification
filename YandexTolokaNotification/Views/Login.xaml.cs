@@ -19,7 +19,7 @@ namespace YandexTolokaNotification
         {
           
             InitializeComponent();
-            this.DataContext = new LoginModelView();
+            this.DataContext = new LoginModelView(this);
         }
 
          
