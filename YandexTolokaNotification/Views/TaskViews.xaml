@@ -15,28 +15,28 @@
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <ListView Grid.Column="2" Name="AllTasks" ItemsSource="{Binding Path = FullTasks}" 
-            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}">
+            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}" VirtualizingStackPanel.IsVirtualizing="False" >
+           
             <e:Interaction.Triggers>
-                <e:EventTrigger   EventName="Selected" >
-                    <e:InvokeCommandAction Command="{  Binding  AddTaskCommand}" />
-                </e:EventTrigger> 
                 <e:EventTrigger   EventName="SelectionChanged" >
                     <e:InvokeCommandAction Command="{  Binding  AddTaskCommand}" />
-                </e:EventTrigger>
-            </e:Interaction.Triggers>
+                </e:EventTrigger> 
+            </e:Interaction.Triggers> 
         </ListView>
-        <DataGrid  Grid.Column="0"   Name="NeedTasks" ItemsSource="{Binding Path = NeedlyTask}" 
-            SelectedItem="{Binding Path = ChoosenNeedTask, Mode=TwoWay}" 
-			AutoGenerateColumns="True">
+        <ListView Grid.Column="0"   Name="NeedTasks" ItemsSource="{Binding Path = NeedlyTask}" 
+            SelectedItem="{Binding Path = ChoosenNeedTask, Mode=TwoWay}" VirtualizingStackPanel.IsVirtualizing="False"
+			 > 
             <e:Interaction.Triggers>
-                <e:EventTrigger   EventName="Selected" >
+                <e:EventTrigger   EventName="SelectionChanged" >
                     <e:InvokeCommandAction Command="{  Binding  RemoveTaskCommand}" />
                 </e:EventTrigger>
             </e:Interaction.Triggers>
-        </DataGrid>
-        
+        </ListView>
+
         <TextBox Text="{Binding Path=CustomTitle}" Grid.Column="1" HorizontalAlignment="Center" Height="23" Margin="0,119,0,0"  VerticalAlignment="Top" Width="120"/>
         <Button Command="{Binding Path=AddCustomCommand}" Grid.Column="1" Content="AddCustomTask" HorizontalAlignment="Center" Margin="0,147,0,0" VerticalAlignment="Top"/>
+        <Button Command="{Binding Path=GetFullTasksCommand}" Grid.Column="1" Content="Get Full Task" HorizontalAlignment="Center" Margin="0,239,0,0" VerticalAlignment="Top"/>
         <Button Command="{Binding Path=ListenCommand}"  Grid.Column="1" Content="Listen" HorizontalAlignment="Center" Margin="0,321,0,0" VerticalAlignment="Top"/>
+        <Button Command="{Binding Path=StopListenCommand}"  Grid.Column="1" Content="Stop" HorizontalAlignment="Center" Margin="0,283,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

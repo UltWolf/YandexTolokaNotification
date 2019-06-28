@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.Serialization.Formatters.Binary; 
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -32,19 +32,19 @@ namespace YandexTolokaNotification.ModelView
         public string Email { get => _email; set { _email = value; OnPropertyChanged("Email"); } }
         public string Password { get => _password; set { _password = value; OnPropertyChanged("Password"); } }
 
-         public UserStateLogin StateLogin { get=>_stateLogin; set { _stateLogin = value;OnPropertyChanged("StateLogin"); } }
-        public ICommand LoginCommand { get; set; } 
+        public UserStateLogin StateLogin { get => _stateLogin; set { _stateLogin = value; OnPropertyChanged("StateLogin"); } }
+        public ICommand LoginCommand { get; set; }
 
 
         public LoginModelView(Login view)
         {
             proxys = GetProxyServers();
-            LoginCommand = new RelayCommand(o => Login(new object())); 
+            LoginCommand = new RelayCommand(o => Login(new object()));
             InitiateUser();
             _view = view;
 
         }
-        
+
         private void InitiateUser()
         {
             if (File.Exists("user.data"))
@@ -58,24 +58,26 @@ namespace YandexTolokaNotification.ModelView
                         Password = user.Password;
                         StateLogin = user.UST;
                     }
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
 
                 }
             }
         }
-       
+
         public void Login(object obj)
-        { 
+        {
             int index;
-            if (obj is int) {
+            if (obj is int)
+            {
                 index = (int)obj;
             }
             else
             {
                 index = 0;
             }
-           
+
             try
             {
                 FirefoxOptions options = new FirefoxOptions();
@@ -89,17 +91,17 @@ namespace YandexTolokaNotification.ModelView
 
                     FirefoxDriver driver = new FirefoxDriver(FirefoxDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(5));
                     LoginInAccount(driver);
-                    TaskViews tw =  new TaskViews(driver) ;
+                    TaskViews tw = new TaskViews(driver);
                     tw.Show();
                     _view.Close();
                 }
-                
+
             }
             catch (Exception ex)
             {
                 Login(++index);
             }
-            
+
 
 
         }
@@ -117,49 +119,97 @@ namespace YandexTolokaNotification.ModelView
                 driver.Navigate().GoToUrl("https://toloka.yandex.ru/");
                 WaitUntilElementClickable(driver, header_login_but);
                 driver.FindElement(header_login_but).Click();
-                if (((int)StateLogin) == 0)
+                WaitUntilElementVisible(driver, By.TagName("div"));
+                LoginPageState LPS = new LoginPageState();
+                if (driver.FindElementsByClassName("passp-content").Count > 0)
                 {
-                    GoogleAuth(driver);
+                    LPS = LoginPageState.Passp;
                 }
-                else if (((int)StateLogin) == 2)
+                else if (driver.FindElementsByClassName("domik-content").Count > 0)
                 {
-                    LoginBySelf(driver);
+                    LPS = LoginPageState.Domik;
                 }
-            }catch(Exception ex)
+                else
+                {
+                    LPS = LoginPageState.Undefined;
+                }
+                switch (user.UST)
+                {
+                    case UserStateLogin.GoogleAuth:
+                        GoogleAuth(driver, LPS);
+                        break;
+                    case UserStateLogin.AuthBySelf:
+                        LoginBySelf(driver, LPS);
+                        break;
+                }
+            }
+            catch (Exception ex)
             {
                 driver.Quit();
 
-                throw ;
+                throw;
             }
 
         }
-        private void LoginBySelf(FirefoxDriver driver)
+        private void LoginBySelf(FirefoxDriver driver, LoginPageState pageState)
         {
-            WaitUntilElementVisible(driver, By.ClassName("passp-content"));
-            var wrap = driver.FindElement(By.ClassName("passp-content"));
-            var wrapForContent = wrap.FindElement(By.ClassName("passp-auth-content"));
-            var wrapForPassword = wrapForContent.FindElement(By.ClassName("passp-login-form"));
-            var wrapInsideForm = wrapForPassword.FindElement(By.ClassName("passp-form-field"));
-            var wrapInput = wrapInsideForm.FindElement(By.ClassName("passp-form-field__input"));
-            wrapInput.FindElement(By.TagName("input")).SendKeys(_email);
-            driver.FindElementByClassName("passp-sign-in-button")
-                .FindElements(By.TagName("button"))[0].Click();
-            var passwordInput = By.Id("passp-field-passwd");
-            WaitUntilElementClickable(driver, passwordInput);
-            driver.FindElement(passwordInput).SendKeys(_password);
-            driver.FindElement(By.ClassName("passp-sign-in-button")).FindElement(By.TagName("button")).Click();
-            WaitUntilElementVisible(driver, By.ClassName("snippets"));
+            switch (pageState)
+            {
+                case LoginPageState.Passp:
+
+                    var wrap = driver.FindElement(By.ClassName("passp-content"));
+                    var wrapForContent = wrap.FindElement(By.ClassName("passp-auth-content"));
+                    var wrapForPassword = wrapForContent.FindElement(By.ClassName("passp-login-form"));
+                    var wrapInsideForm = wrapForPassword.FindElement(By.ClassName("passp-form-field"));
+                    var wrapInput = wrapInsideForm.FindElement(By.ClassName("passp-form-field__input"));
+                    wrapInput.FindElement(By.TagName("input")).SendKeys(_email);
+                    driver.FindElementByClassName("passp-sign-in-button")
+                        .FindElements(By.TagName("button"))[0].Click();
+                    var passwordInput = By.Id("passp-field-passwd");
+                    WaitUntilElementClickable(driver, passwordInput);
+                    driver.FindElement(passwordInput).SendKeys(_password);
+                    driver.FindElement(By.ClassName("passp-sign-in-button")).FindElement(By.TagName("button")).Click();
+                    WaitUntilElementVisible(driver, By.ClassName("snippets"));
+                    break;
+
+                case LoginPageState.Domik:
+
+                    var wrap_domik = driver.FindElement(By.ClassName("domik-content"));
+                    var wrapForContent_domik = wrap_domik.FindElement(By.TagName("form"));
+                    var wrap_for_inputs = wrapForContent_domik.FindElements(By.ClassName("domik-field"));
+                    wrap_for_inputs[0].FindElement(By.TagName("input")).SendKeys(_email);
+                    wrap_for_inputs[1].FindElement(By.TagName("input")).SendKeys(_password);
+                    var wrapbutton_domik = wrapForContent_domik.FindElement(By.ClassName("domik-row"));
+                    wrapbutton_domik.FindElement(By.TagName("button")).Click();
+                    WaitUntilElementVisible(driver, By.ClassName("snippets"));
+                    break;
+
+                case LoginPageState.Undefined:
+                    break;
+            }
         }
-        private void GoogleAuth(FirefoxDriver driver)
+        private void GoogleAuth(FirefoxDriver driver, LoginPageState LPS)
         {
-            try { 
-                
+            switch (LPS)
+            {
+                case LoginPageState.Passp:
+
+
+                    By GoogleAuthDiv = By.ClassName("passp-social-block__list-item");
+                    WaitUntilElementClickable(driver, GoogleAuthDiv);
+                    driver.FindElements(GoogleAuthDiv)[2].Click();
+                    break;
+
+                case LoginPageState.Domik:
+                    var content_domik = driver.FindElementByClassName("domik-content");
+                    var scl_domik = content_domik.FindElement(By.ClassName("domik-scl"));
+                    scl_domik.FindElement(By.ClassName("scl-icon_gg")).Click();
+                    break;
+            }
+            try
+            {
                 By formGroup = By.ClassName("form-group");
-                By inputTag = By.TagName("input"); 
-                By GoogleAuthDiv = By.ClassName("passp-social-block__list-item");
-                 
-                WaitUntilElementClickable(driver, GoogleAuthDiv);
-                driver.FindElements(GoogleAuthDiv)[2].Click();
+                By inputTag = By.TagName("input");
                 var windows = driver.WindowHandles.ToList();
                 driver.SwitchTo().Window(windows[1]);
 
@@ -200,9 +250,9 @@ namespace YandexTolokaNotification.ModelView
                 driver.Quit();
                 throw new Exception("Exception", ex);
             }
-           
+
         }
-        public IWebElement WaitUntilElementClickable(FirefoxDriver driver, By elementLocator, int timeout = 60)
+        public IWebElement WaitUntilElementClickable(FirefoxDriver driver, By elementLocator, int timeout = 160)
         {
             try
             {
@@ -215,7 +265,7 @@ namespace YandexTolokaNotification.ModelView
                 throw;
             }
         }
-        public IWebElement WaitUntilElementVisible(FirefoxDriver driver, By elementLocator, int timeout = 60)
+        public IWebElement WaitUntilElementVisible(FirefoxDriver driver, By elementLocator, int timeout = 160)
         {
             try
             {
@@ -231,7 +281,7 @@ namespace YandexTolokaNotification.ModelView
 
         public List<string> GetProxyServers()
         {
-            List<String> proxyList = new List<string>();
+            List<string> proxyList = new List<string>();
             var httpRequest = (HttpWebRequest)HttpWebRequest.Create("https://www.proxynova.com/proxy-server-list/country-ru/");
             httpRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
             httpRequest.KeepAlive = true;
@@ -270,7 +320,7 @@ namespace YandexTolokaNotification.ModelView
                         }
                     }
                 }
-                
+
 
             }
             return proxyList;
