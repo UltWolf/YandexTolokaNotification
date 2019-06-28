@@ -92,18 +92,20 @@ namespace YandexTolokaNotification.ModelView
             );
             return tasks;
         }
-        private bool FindTask()
+        private Tuple<bool, string> FindTask()
         {
-            bool result= false;
+
+            var result = Tuple.Create(false,"");
             var lis = _driver.FindElementsByClassName("tutorial-tasks-page__snippets");
             Parallel.ForEach<IWebElement>(lis,
                 new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount },
                 (lis,state) =>
             {
-                bool IsContains = NeedlyTask.Contains(GetTask(lis));
+                string nameOfTask = GetTask(lis);
+                bool IsContains = NeedlyTask.Contains(nameOfTask);
                 if (IsContains)
                 {
-                    result = true;
+                    result = Tuple.Create(true,nameOfTask);
                     state.Break();
                     
                 }
@@ -187,7 +189,7 @@ namespace YandexTolokaNotification.ModelView
             while (_clock)
             {
 
-                bool result = FindTask();
+                var result = FindTask();
                 Monitor.Enter(_locker);
                 if (_clock == false)
                 {
@@ -196,9 +198,9 @@ namespace YandexTolokaNotification.ModelView
                     Monitor.Exit(_locker);
                     break;
                 }
-                if(result==true)
+                if(result.Item1==true)
                 {
-                    MessageBox.Show("Update page, you got a need task ");
+                    MessageBox.Show("Update page, you got a task: "+result.Item2);
                 }
 
                 Monitor.Exit(_locker);
