@@ -15,7 +15,7 @@
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <ListView Grid.Column="2" Name="AllTasks" ItemsSource="{Binding Path = FullTasks}" 
-            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}" VirtualizingStackPanel.IsVirtualizing="False" >
+            SelectedItem="{Binding Path = ChoosenFullTask, Mode=TwoWay}"   >
 
             <e:Interaction.Triggers>
                 <e:EventTrigger   EventName="SelectionChanged" >
@@ -24,7 +24,7 @@
             </e:Interaction.Triggers>
         </ListView>
         <ListView Grid.Column="0"   Name="NeedTasks" ItemsSource="{Binding Path = NeedlyTask}" 
-            SelectedItem="{Binding Path = ChoosenNeedTask, Mode=TwoWay}" VirtualizingStackPanel.IsVirtualizing="False"
+            SelectedItem="{Binding Path = ChoosenNeedTask, Mode=TwoWay}"  
 			 >
             <e:Interaction.Triggers>
                 <e:EventTrigger   EventName="SelectionChanged" >

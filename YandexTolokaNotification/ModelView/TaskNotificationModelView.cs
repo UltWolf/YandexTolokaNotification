@@ -68,6 +68,7 @@ namespace YandexTolokaNotification.ModelView
                 using (FileStream fs = new FileStream("tasks.data", FileMode.Create, FileAccess.Write))
                 {
                     bf.Serialize(fs, NeedlyTask);
+                    MessageBox.Show("Tasks has been saved successfull");
                 }
             }
             );
