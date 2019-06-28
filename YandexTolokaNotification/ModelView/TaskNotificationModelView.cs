@@ -92,6 +92,25 @@ namespace YandexTolokaNotification.ModelView
             );
             return tasks;
         }
+        private bool FindTask()
+        {
+            bool result= false;
+            var lis = _driver.FindElementsByClassName("tutorial-tasks-page__snippets");
+            Parallel.ForEach<IWebElement>(lis,
+                new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                (lis,state) =>
+            {
+                bool IsContains = NeedlyTask.Contains(GetTask(lis));
+                if (IsContains)
+                {
+                    result = true;
+                    state.Break();
+                    
+                }
+            }
+            );
+            return result;
+        }
         private string GetTask(IWebElement element)
         {
             if (element.FindElements(By.TagName("div"))[0].GetAttribute("class").Contains("snippet snippet_not-available")){
@@ -168,7 +187,7 @@ namespace YandexTolokaNotification.ModelView
             while (_clock)
             {
 
-                List<string> Tasks = NeedlyTask.GetCompareElement(GetTasks());
+                bool result = FindTask();
                 Monitor.Enter(_locker);
                 if (_clock == false)
                 {
@@ -177,12 +196,13 @@ namespace YandexTolokaNotification.ModelView
                     Monitor.Exit(_locker);
                     break;
                 }
+                if(result==true)
+                {
+                    MessageBox.Show("Update page, you got a need task ");
+                }
 
                 Monitor.Exit(_locker);
-                if (Tasks.Count > 0)
-                {
-                    MessageBox.Show("We get nextElements:" + JsonConvert.SerializeObject(Tasks));
-                }
+               
                 int seconds = 30;
                 int milliseconds = 1000;
                 try
