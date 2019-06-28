@@ -4,6 +4,8 @@ using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +29,7 @@ namespace YandexTolokaNotification.ModelView
         private Thread ThreadSearch;
         private string _choosenNeedTask;
         private Boolean _clock = true;
+        private BinaryFormatter bf = new BinaryFormatter();
         public List<string> FullTasks { get => _fullTask; set { _fullTask = value; OnPropertyChanged("FullTasks"); } }
 
         public List<string> NeedlyTask { get => _needlyTask; set { _needlyTask = value; OnPropertyChanged("NeedlyTask"); } }
@@ -37,6 +40,7 @@ namespace YandexTolokaNotification.ModelView
         public ICommand RemoveTaskCommand { get; set; }
         public ICommand GetFullTasksCommand { get; set; }
         public ICommand StopListenCommand { get; set; }
+        public ICommand SaveNeedlyCommand { get; set; }
         public string ChoosenNeedTask { get => _choosenNeedTask; set { _choosenNeedTask = value; OnPropertyChanged("ChoosenNeedTask"); } }
         public string ChoosenFullTask { get => _choosenFullTask; set { _choosenFullTask = value; OnPropertyChanged("ChoosenFullTask"); } }
    
@@ -50,8 +54,34 @@ namespace YandexTolokaNotification.ModelView
             AddTaskCommand = new RelayCommand(AddToNeed);
             RemoveTaskCommand = new RelayCommand(RemoveFromNeed);
             GetFullTasksCommand = new RelayCommand(UpdateList);
+            SaveNeedlyCommand = new RelayCommand(SaveNeedlyTasks);
             InitializeList();
+            Thread thr = new Thread(getNeedlyTask);
+            thr.Start();
             
+        }
+
+        public void SaveNeedlyTasks(object obj)
+        {
+            Task task = new Task(() =>
+            {
+                using (FileStream fs = new FileStream("tasks.data", FileMode.Create, FileAccess.Write))
+                {
+                    bf.Serialize(fs, NeedlyTask);
+                }
+            }
+            );
+            task.Start();
+        }
+        private void getNeedlyTask()
+        {
+            if (File.Exists("tasks.data"))
+            {
+                using (FileStream fs = new FileStream("tasks.data", FileMode.Open, FileAccess.Read))
+                {
+                   NeedlyTask= (List<string>) bf.Deserialize(fs);
+                }
+            }
         }
         public void StopListening(object obj)
         {
