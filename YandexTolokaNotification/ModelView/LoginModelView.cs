@@ -131,8 +131,9 @@ namespace YandexTolokaNotification.ModelView
                 }
                 else
                 {
-                    LPS = LoginPageState.Undefined;
+                    throw new Exception();
                 }
+                
                 switch (user.UST)
                 {
                     case UserStateLogin.GoogleAuth:
@@ -163,12 +164,23 @@ namespace YandexTolokaNotification.ModelView
                     var wrapInsideForm = wrapForPassword.FindElement(By.ClassName("passp-form-field"));
                     var wrapInput = wrapInsideForm.FindElement(By.ClassName("passp-form-field__input"));
                     wrapInput.FindElement(By.TagName("input")).SendKeys(_email);
+                 
                     driver.FindElementByClassName("passp-sign-in-button")
                         .FindElements(By.TagName("button"))[0].Click();
+                    var error = driver.FindElements(By.ClassName("passp-form-field__error"));
+                    if (error.Count > 0)
+                    {
+                        MessageBox.Show("Ooopsy, we have some problem, open the page and resolve that");
+                    }
                     var passwordInput = By.Id("passp-field-passwd");
                     WaitUntilElementClickable(driver, passwordInput);
                     driver.FindElement(passwordInput).SendKeys(_password);
                     driver.FindElement(By.ClassName("passp-sign-in-button")).FindElement(By.TagName("button")).Click();
+                    error = driver.FindElements(By.ClassName("passp-form-field__error"));
+                    if (error.Count > 0)
+                    {
+                        MessageBox.Show("Ooopsy, we have some problem, open the page and resolve that");
+                    }
                     WaitUntilElementVisible(driver, By.ClassName("snippets"));
                     break;
 

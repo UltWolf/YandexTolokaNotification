@@ -2,17 +2,16 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
-using System;
-using System.Collections.Generic;
+using System; 
+using System.Collections.ObjectModel;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
+using System.Runtime.Serialization.Formatters.Binary; 
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
-using YandexTolokaNotification.Extensions;
-using YandexTolokaNotification.Model;
+using System.Windows.Threading;
 using YandexTolokaNotification.Services.Abstracts;
 using YandexTolokaNotification.Services.Commands;
 
@@ -22,105 +21,106 @@ namespace YandexTolokaNotification.ModelView
     {
         private FirefoxDriver _driver;
         private object _locker = new object();
-        private List<string> _fullTask  = new List<string>();
-        private List<string> _needlyTask = new List<string>();
+        private ObservableCollection<string> _fullTask  = new ObservableCollection<string>();
+        private ObservableCollection<string> _needlyTask = new ObservableCollection<string>();
         private string _customTitle = "Нет текущей задачи? Не беда, добавьте её сами.";
         private string _choosenFullTask;
         private Thread ThreadSearch;
         private string _choosenNeedTask;
         private Boolean _clock = true;
         private BinaryFormatter bf = new BinaryFormatter();
-        public List<string> FullTasks { get => _fullTask; set { _fullTask = value; OnPropertyChanged("FullTasks"); } }
+        public ObservableCollection<string> FullTasks { get => _fullTask; set { _fullTask = value; OnPropertyChanged("FullTasks"); } }
 
-        public List<string> NeedlyTask { get => _needlyTask; set { _needlyTask = value; OnPropertyChanged("NeedlyTask"); } }
+        public ObservableCollection<string> NeedlyTask { get => _needlyTask; set { _needlyTask = value; OnPropertyChanged("NeedlyTask"); } }
         public string CustomTitle { get => _customTitle; set { _customTitle = value; OnPropertyChanged("CustomTitle"); } }
-        public ICommand ListenCommand { get; set; }
+        public ICommand ObservableCollectionenCommand { get; set; }
         public ICommand AddCustomCommand { get; set; }
         public ICommand AddTaskCommand { get; set; }
         public ICommand RemoveTaskCommand { get; set; }
         public ICommand GetFullTasksCommand { get; set; }
-        public ICommand StopListenCommand { get; set; }
+        public ICommand StopObservableCollectionenCommand { get; set; }
         public ICommand SaveNeedlyCommand { get; set; }
         public string ChoosenNeedTask { get => _choosenNeedTask; set { _choosenNeedTask = value; OnPropertyChanged("ChoosenNeedTask"); } }
         public string ChoosenFullTask { get => _choosenFullTask; set { _choosenFullTask = value; OnPropertyChanged("ChoosenFullTask"); } }
-   
+        private static object _syncLock = new object();
+
 
         public TaskNotificationModelView(FirefoxDriver driver)
         {
             _driver = driver;
-            ListenCommand = new RelayCommand(Listen);
-            StopListenCommand = new RelayCommand(StopListening);
+            ObservableCollectionenCommand = new RelayCommand(ObservableCollectionen);
+            StopObservableCollectionenCommand = new RelayCommand(StopObservableCollectionening);
             AddCustomCommand = new RelayCommand(AddCustom);
             AddTaskCommand = new RelayCommand(AddToNeed);
             RemoveTaskCommand = new RelayCommand(RemoveFromNeed);
-            GetFullTasksCommand = new RelayCommand(UpdateList);
+            GetFullTasksCommand = new RelayCommand(UpdateObservableCollection);
             SaveNeedlyCommand = new RelayCommand(SaveNeedlyTasks);
-            InitializeList();
-            Thread thr = new Thread(getNeedlyTask);
-            thr.Start();
-            
+            BindingOperations.EnableCollectionSynchronization(FullTasks, _syncLock);
+            BindingOperations.EnableCollectionSynchronization(NeedlyTask, _syncLock); 
+            lock (_syncLock)
+            {
+                Thread thr = new Thread(getNeedlyTask);
+                thr.Start();
+            }
         }
 
         public void SaveNeedlyTasks(object obj)
-        {
-            Task task = new Task(() =>
+        { lock (_syncLock)
             {
-                using (FileStream fs = new FileStream("tasks.data", FileMode.Create, FileAccess.Write))
+                Task task = new Task(() =>
                 {
-                    bf.Serialize(fs, NeedlyTask);
-                    MessageBox.Show("Tasks has been saved successfull");
+                    using (FileStream fs = new FileStream("tasks.data", FileMode.Create, FileAccess.Write))
+                    {
+                        bf.Serialize(fs, NeedlyTask);
+                        MessageBox.Show("Tasks has been saved successfull");
+                    }
                 }
+                );
+                task.Start();
             }
-            );
-            task.Start();
         }
         private void getNeedlyTask()
         {
-            if (File.Exists("tasks.data"))
+            lock (_syncLock)
             {
-                using (FileStream fs = new FileStream("tasks.data", FileMode.Open, FileAccess.Read))
+                if (File.Exists("tasks.data"))
                 {
-                   NeedlyTask= (List<string>) bf.Deserialize(fs);
+                    using (FileStream fs = new FileStream("tasks.data", FileMode.Open, FileAccess.Read))
+                    {
+                        NeedlyTask = (ObservableCollection<string>)bf.Deserialize(fs);
+                    }
                 }
             }
         }
-        public void StopListening(object obj)
+        public void StopObservableCollectionening(object obj)
         {
             Monitor.Enter(_locker);
             _clock = false;
             Monitor.Exit(_locker);
         }
-        public void UpdateList(object obj)
+        public void UpdateObservableCollection(object obj)
         {
-            Thread thread = new Thread(AddTasks);
-            thread.Start();
+             ObservableCollection<string> newTasks = GetTasks();
+            Application.Current.Dispatcher.BeginInvoke(
+                  DispatcherPriority.Background,
+              new Action(() => { FullTasks = newTasks; })); 
+            
         }
-        private void AddTasks()
+         
+        private ObservableCollection<string> GetTasks()
         {
-            FullTasks = new List<string>();
-            var lis =  _driver.FindElementsByClassName("tutorial-tasks-page__snippets");
-            Parallel.ForEach(lis, (lis)=> {
-                string task = GetTask(lis);
-                if (task != "")
-                {
-                    FullTasks.Add(task);
-                }
-            }
-            ); 
-        } 
-        private List<string> GetTasks()
-        {
-            List<string> tasks = new List<string>();
+            ObservableCollection<string> tasks = new ObservableCollection<string>();
             var lis = _driver.FindElementsByClassName("tutorial-tasks-page__snippets");
-            Parallel.ForEach(lis, (lis) =>
+             
+                Parallel.ForEach(lis, (lis) =>
             {
                 string task = GetTask(lis);
                 if (task != "")
                 {
                     tasks.Add(task);
                 }
-                }
-            );
+            }
+            ); 
             return tasks;
         }
         private Tuple<bool, string> FindTask()
@@ -128,20 +128,23 @@ namespace YandexTolokaNotification.ModelView
 
             var result = Tuple.Create(false,"");
             var lis = _driver.FindElementsByClassName("tutorial-tasks-page__snippets");
-            Parallel.ForEach<IWebElement>(lis,
+            lock (_syncLock)
+            {
+                Parallel.ForEach<IWebElement>(lis,
                 new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount },
-                (lis,state) =>
+                (lis, state) =>
             {
                 string nameOfTask = GetTask(lis);
                 bool IsContains = NeedlyTask.Contains(nameOfTask);
                 if (IsContains)
                 {
-                    result = Tuple.Create(true,nameOfTask);
+                    result = Tuple.Create(true, nameOfTask);
                     state.Break();
-                    
+
                 }
             }
             );
+            }
             return result;
         }
         private string GetTask(IWebElement element)
@@ -156,41 +159,70 @@ namespace YandexTolokaNotification.ModelView
         }
         public void Initialize(object obj)
         {
-            Thread thr = new Thread(InitializeList);
+            Thread thr = new Thread(InitializeObservableCollection);
             thr.Start();
         }
-        private void InitializeList()
+        private void InitializeObservableCollection()
         {
-            FullTasks = GetTasks();
+            lock (_syncLock)
+            {
+                FullTasks = GetTasks();
+            }
         }
         private void AddToNeed(object obj)
         {
-            this.FullTasks.Remove(ChoosenFullTask);
-            this.NeedlyTask.Add(ChoosenFullTask);
-            UpdateLists();
+            lock (_syncLock)
+            {
+                Application.Current.Dispatcher.BeginInvoke(
+                     DispatcherPriority.Background,
+                 new Action(() => {
+
+                     this.NeedlyTask.Add(ChoosenFullTask);
+                     this.FullTasks.Remove(ChoosenFullTask);
+                 }));
+            }
+            UpdateObservableCollection();
 
         }
-        private void UpdateLists()
-        {
-            OnPropertyChanged("NeedlyTask");
-            OnPropertyChanged("FullTasks");
-        }
+     
         private void RemoveFromNeed(object obj)
         {
-            this.FullTasks.Add(ChoosenNeedTask);
-            this.NeedlyTask.Remove(ChoosenNeedTask);
-            UpdateLists();
+            lock (_syncLock)
+            {
+                Application.Current.Dispatcher.BeginInvoke(
+                    DispatcherPriority.Background,
+                new Action(() => {
+                    this.FullTasks.Add(ChoosenNeedTask);
+                this.NeedlyTask.Remove(ChoosenNeedTask);
+                }));
+            }
+            UpdateObservableCollection();
+           
+        }
+        private void UpdateObservableCollection()
+        {
+            OnPropertyChanged("NeedlyTask");
+
+            OnPropertyChanged("FullTasks");
         }
         public void AddCustom(object obj)
         {
-            _fullTask.Add(new string(CustomTitle));
-            UpdateLists();
+            lock (_syncLock)
+            {
+                Application.Current.Dispatcher.BeginInvoke(
+                        DispatcherPriority.Background,
+                    new Action(() =>
+                    {
+                        _fullTask.Add(new string(CustomTitle));
+                    }));
+                OnPropertyChanged("FullTasks");
+            }
         }
-        public void Listen(object obj)
+        public void ObservableCollectionen(object obj)
         {
             try
             {
-                ThreadStart threadStart = new ThreadStart(ListenCycle);
+                ThreadStart threadStart = new ThreadStart(ObservableCollectionenCycle);
                 this.ThreadSearch = new Thread(threadStart);
                 this.ThreadSearch.Start();
             }
@@ -199,7 +231,7 @@ namespace YandexTolokaNotification.ModelView
                 MessageBox.Show("Thread is cancel");
             }
         }
-        private void ListenCycle()
+        private void ObservableCollectionenCycle()
         {
             try
             {
@@ -225,7 +257,7 @@ namespace YandexTolokaNotification.ModelView
                 if (_clock == false)
                 {
                     _clock = true;
-                    MessageBox.Show("Listen have been canceled");
+                    MessageBox.Show("ObservableCollectionen have been canceled");
                     Monitor.Exit(_locker);
                     break;
                 }
