@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:YandexTolokaNotification.Views"
         mc:Ignorable="d"
         Title="TaskViews" ResizeMode="NoResize"  
-    WindowStartupLocation="CenterScreen" WindowState="Maximized">
+    WindowStartupLocation="CenterScreen" Width="690">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
@@ -33,10 +33,12 @@
             </e:Interaction.Triggers>
         </ListView>
 
+        <Label Content="Обучение"  Grid.Column="1" Margin="52,233,102,82.96" ></Label>
+        <CheckBox IsChecked="{Binding Path=IsTurnEdu}" Grid.Column="1" Width="20" Height="20" Margin="80,258,130,62.96"></CheckBox>
         <TextBox Text="{Binding Path=CustomTitle}" Grid.Column="1" HorizontalAlignment="Center" Height="23" Margin="0,119,0,0"  VerticalAlignment="Top" Width="120"/>
         <Button Command="{Binding Path=SaveNeedlyCommand}" Grid.Column="1" Content="Save list of need" HorizontalAlignment="Center" Margin="0,192,0,0" VerticalAlignment="Top"/>
         <Button Command="{Binding Path=AddCustomCommand}" Grid.Column="1" Content="AddCustomTask" HorizontalAlignment="Center" Margin="0,147,0,0" VerticalAlignment="Top"/>
-        <Button Command="{Binding Path=GetFullTasksCommand}" Grid.Column="1" Content="Get Full Task" HorizontalAlignment="Center" Margin="0,239,0,0" VerticalAlignment="Top"/>
+        <Button Command="{Binding Path=GetFullTasksCommand}" Grid.Column="1" Content="Get Full Task" HorizontalAlignment="Center" Margin="0,217,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.434,0.032"/>
         <Button Command="{Binding Path=ListenCommand}"  Grid.Column="1" Content="Listen" HorizontalAlignment="Center" Margin="0,321,0,0" VerticalAlignment="Top"/>
         <Button Command="{Binding Path=StopListenCommand}"  Grid.Column="1" Content="Stop" HorizontalAlignment="Center" Margin="0,283,0,0" VerticalAlignment="Top"/>
     </Grid>

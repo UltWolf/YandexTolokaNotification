@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using YandexTolokaNotification.Extensions;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
@@ -29,27 +29,31 @@ namespace YandexTolokaNotification.ModelView
         private string _choosenNeedTask;
         private Boolean _clock = true;
         private BinaryFormatter bf = new BinaryFormatter();
+        private bool _isTurnEdu = false;
         public ObservableCollection<string> FullTasks { get => _fullTask; set { _fullTask = value; OnPropertyChanged("FullTasks"); } }
 
         public ObservableCollection<string> NeedlyTask { get => _needlyTask; set { _needlyTask = value; OnPropertyChanged("NeedlyTask"); } }
         public string CustomTitle { get => _customTitle; set { _customTitle = value; OnPropertyChanged("CustomTitle"); } }
-        public ICommand ObservableCollectionenCommand { get; set; }
+        public ICommand ListenCommand { get; set; }
         public ICommand AddCustomCommand { get; set; }
         public ICommand AddTaskCommand { get; set; }
         public ICommand RemoveTaskCommand { get; set; }
         public ICommand GetFullTasksCommand { get; set; }
-        public ICommand StopObservableCollectionenCommand { get; set; }
+        public ICommand StopListenCommand { get; set; }
         public ICommand SaveNeedlyCommand { get; set; }
         public string ChoosenNeedTask { get => _choosenNeedTask; set { _choosenNeedTask = value; OnPropertyChanged("ChoosenNeedTask"); } }
         public string ChoosenFullTask { get => _choosenFullTask; set { _choosenFullTask = value; OnPropertyChanged("ChoosenFullTask"); } }
+
+        public bool IsTurnEdu { get => _isTurnEdu; set { _isTurnEdu = value; OnPropertyChanged("IsTurnEdu"); } }
+
         private static object _syncLock = new object();
 
 
         public TaskNotificationModelView(FirefoxDriver driver)
         {
             _driver = driver;
-            ObservableCollectionenCommand = new RelayCommand(ObservableCollectionen);
-            StopObservableCollectionenCommand = new RelayCommand(StopObservableCollectionening);
+            ListenCommand = new RelayCommand(Listen);
+            StopListenCommand = new RelayCommand(StopListening);
             AddCustomCommand = new RelayCommand(AddCustom);
             AddTaskCommand = new RelayCommand(AddToNeed);
             RemoveTaskCommand = new RelayCommand(RemoveFromNeed);
@@ -92,7 +96,7 @@ namespace YandexTolokaNotification.ModelView
                 }
             }
         }
-        public void StopObservableCollectionening(object obj)
+        public void StopListening(object obj)
         {
             Monitor.Enter(_locker);
             _clock = false;
@@ -154,7 +158,21 @@ namespace YandexTolokaNotification.ModelView
             }
             else
             {
-                return element.FindElement(By.ClassName("snippet__title")).Text;
+                if (_isTurnEdu) {
+                    return element.FindElement(By.ClassName("snippet__title")).Text;
+                }
+                else
+                {
+                    var type = element.FindElement(By.ClassName("snippet__take-btn")).Text;
+                    if (type != "Обучение")
+                    {
+                        return element.FindElement(By.ClassName("snippet__title")).Text;
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
             }
         }
         public void Initialize(object obj)
@@ -167,6 +185,8 @@ namespace YandexTolokaNotification.ModelView
             lock (_syncLock)
             {
                 FullTasks = GetTasks();
+                FullTasks.RemoveCompareElement(NeedlyTask);
+                
             }
         }
         private void AddToNeed(object obj)
@@ -218,11 +238,11 @@ namespace YandexTolokaNotification.ModelView
                 OnPropertyChanged("FullTasks");
             }
         }
-        public void ObservableCollectionen(object obj)
+        public void Listen(object obj)
         {
             try
             {
-                ThreadStart threadStart = new ThreadStart(ObservableCollectionenCycle);
+                ThreadStart threadStart = new ThreadStart(ListenCycle);
                 this.ThreadSearch = new Thread(threadStart);
                 this.ThreadSearch.Start();
             }
@@ -231,17 +251,17 @@ namespace YandexTolokaNotification.ModelView
                 MessageBox.Show("Thread is cancel");
             }
         }
-        private void ObservableCollectionenCycle()
+        private void ListenCycle()
         {
             try
             {
-                _driver.Navigate().Refresh();
+                _driver.Navigate().GoToUrl(_driver.Url);
             }
             catch (Exception)
             {
                 try
                 {
-                    _driver.Navigate().Refresh();
+                    _driver.Navigate().GoToUrl(_driver.Url);
                 }
                 catch (Exception)
                 {
@@ -257,7 +277,7 @@ namespace YandexTolokaNotification.ModelView
                 if (_clock == false)
                 {
                     _clock = true;
-                    MessageBox.Show("ObservableCollectionen have been canceled");
+                    MessageBox.Show("Listen have been canceled");
                     Monitor.Exit(_locker);
                     break;
                 }
@@ -272,13 +292,13 @@ namespace YandexTolokaNotification.ModelView
                 int milliseconds = 1000;
                 try
                 {
-                    _driver.Navigate().Refresh();
+                    _driver.Navigate().GoToUrl(_driver.Url);
                 }
                 catch (Exception  )
                 {
                     try
                     {
-                        _driver.Navigate().Refresh();
+                        _driver.Navigate().GoToUrl(_driver.Url);
                     }
                     catch(Exception  )
                     {
