@@ -24,25 +24,56 @@ namespace YandexTolokaNotification.ModelView
     {
         private string _email = "Please input your email";
         private string _password = "Please input your password";
+        private bool _isChosenAuthorize = false;
         private Login _view;
         private List<string> proxys;
         private Random r = new Random();
         private UserStateLogin _stateLogin;
         private BinaryFormatter bf = new BinaryFormatter();
+        private string _emailLabel;
+        private string _passwordLabel;
+
+        private Visibility _visibilityLoginInp = Visibility.Hidden;
+        private Visibility _visibilityGridChoose = Visibility.Visible;
         public string Email { get => _email; set { _email = value; OnPropertyChanged("Email"); } }
         public string Password { get => _password; set { _password = value; OnPropertyChanged("Password"); } }
 
         public UserStateLogin StateLogin { get => _stateLogin; set { _stateLogin = value; OnPropertyChanged("StateLogin"); } }
         public ICommand LoginCommand { get; set; }
+        public ICommand GoogleChooseComand { get; set; }
+        public ICommand LoginBySelfChooseCommand { get; set; }
+        public Visibility VisibilityLoginInp { get => _visibilityLoginInp; set { _visibilityLoginInp = value;OnPropertyChanged("VisibilityLoginInp"); } }
 
+        public Visibility VisibilityGridChoose { get => _visibilityGridChoose; set { _visibilityGridChoose = value; OnPropertyChanged("VisibilityGridChoose"); } }
+
+        public string EmailLabel { get => _emailLabel; set { _emailLabel = value; OnPropertyChanged("EmailLabel"); } }
+        public string PasswordLabel { get => _passwordLabel; set {_passwordLabel = value; OnPropertyChanged("PasswordLabel"); } }
 
         public LoginModelView(Login view)
         {
             proxys = GetProxyServers();
             LoginCommand = new RelayCommand(o => Login(new object()));
+            GoogleChooseComand = new RelayCommand(GoogleChoosen);
+            LoginBySelfChooseCommand = new RelayCommand(LoginBySelfChoosen);
             InitiateUser();
             _view = view;
+        }
 
+        public void LoginBySelfChoosen(object obj)
+        {
+            VisibilityGridChoose = Visibility.Hidden;
+            EmailLabel = "Please input your login from Toloka";
+            PasswordLabel = "Please input your password from Toloka";
+            VisibilityLoginInp = Visibility.Visible;
+            StateLogin = UserStateLogin.AuthBySelf;
+        }
+        public void GoogleChoosen(object obj)
+        {
+            VisibilityLoginInp = Visibility.Visible;
+            EmailLabel = "Please input your login from Gmail";
+            PasswordLabel = "Please input your password from Gmail";
+            VisibilityGridChoose = Visibility.Hidden;
+            StateLogin = UserStateLogin.GoogleAuth;
         }
 
         private void InitiateUser()

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Views\CommonResource.xaml" />
     <None Remove="Views\Login.xaml" />
     <None Remove="Views\TaskViews.xaml" />
   </ItemGroup>

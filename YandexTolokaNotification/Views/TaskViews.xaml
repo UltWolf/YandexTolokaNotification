@@ -9,6 +9,7 @@
         Title="TaskViews" ResizeMode="NoResize"  
     WindowStartupLocation="CenterScreen" Width="690">
     <Grid>
+        
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>

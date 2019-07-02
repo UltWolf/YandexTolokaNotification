@@ -2,36 +2,61 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:l ="clr-namespace:YandexTolokaNotification.Services.Converters"
-         xmlns:e="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:e="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:l ="clr-namespace:YandexTolokaNotification.Services.Converters" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:YandexTolokaNotification"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.Resources>
-            <l:EnumBooleanConverter x:Key="enumBooleanConverter" />
+            <l:BoolVisConverter x:Key="BoolVisConverter" />
         </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Label DataContext="" Grid.Column="1" Content="Password" HorizontalAlignment="Center" Margin="0,191,0,0" VerticalAlignment="Top"/>
-        <Label Content="Login"  Grid.Column="1" HorizontalAlignment="Center" Margin="0,99,0,0" VerticalAlignment="Top"/>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
 
-        <TextBox  Grid.Column="1" Text="{Binding Path=Email}" HorizontalAlignment="Center" Height="23" Margin="0,130,0,0"   VerticalAlignment="Top" Width="120"/>
-        <TextBox   Grid.Column="1" Text="{Binding Path=Password}" HorizontalAlignment="Center" Height="23" Margin="0,222,0,0"   VerticalAlignment="Top" Width="120"/>
-        <Button  Grid.Column="1" Command="{Binding LoginCommand}" Content="login" Width="200" Height="60" Margin="33.333,280,33.333,94.04"  />
-        <StackPanel   Grid.Column="2" VerticalAlignment="Center">
-            <RadioButton GroupName="Login" IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=GoogleAuth, Mode=TwoWay}">Google</RadioButton>
-            <RadioButton GroupName="Login" IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=AuthBySelf, Mode=TwoWay}">
-              
-                Byself Log</RadioButton>
-            <RadioButton  GroupName="Login" Command="{Binding Path=ChangeCommand}"  IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=CookieAuth, Mode=TwoWay}">
-                CookieAuth
-            </RadioButton>
-            <RadioButton GroupName="Login"  IsChecked="{Binding Path=StateLogin, Converter={StaticResource enumBooleanConverter}, ConverterParameter=FaceBookAuth, Mode=TwoWay}">Facebook</RadioButton>
-        </StackPanel>
+        <Grid Visibility="{Binding Path=VisibilityLoginInp }" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <Label Content="{Binding PasswordLabel}" Grid.Column="1"  Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Center" />
+        <Label Content="{Binding EmailLabel}"  Grid.Column="1" HorizontalAlignment="Center" Grid.Row="1" VerticalAlignment="Top"/>
+
+        <TextBox  Grid.Column="1" Grid.Row="1" Text="{Binding Path=Email}" HorizontalAlignment="Center" Height="23"   VerticalAlignment="Center" Width="120"/>
+        <TextBox   Grid.Column="1" Grid.Row="2" Text="{Binding Path=Password}" HorizontalAlignment="Center" Height="23"    VerticalAlignment="Center" Width="120"/>
+        <Button  Grid.Column="1" Grid.Row="3" Command="{Binding LoginCommand}" Content="login" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200" Height="60"   />
+        </Grid>
+        <Grid Visibility="{Binding Path= VisibilityGridChoose}" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Grid.RowSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <Label HorizontalAlignment="Center" VerticalAlignment="Top" Grid.ColumnSpan="2">Turn your way to Authorize</Label>
+            <Image  Name="Toloka" Width="100px" Height="100px" VerticalAlignment="Top" Grid.Row="1" Grid.Column="0">
+                <e:Interaction.Triggers>
+                    <e:EventTrigger   EventName="MouseLeftButtonDown" >
+                        <e:InvokeCommandAction Command="{  Binding  LoginBySelfChooseCommand}" />
+                    </e:EventTrigger>
+                </e:Interaction.Triggers>
+            </Image>
+            <Image Name="Google" Width="100px" Height="100px" VerticalAlignment="Top"  Grid.Row="1" Grid.Column="1"></Image>
+       
+    </Grid>
     </Grid>
 </Window>

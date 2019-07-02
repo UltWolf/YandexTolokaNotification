@@ -4,6 +4,7 @@ using System.Text;
 using Xunit;
 using YandexTolokaNotificationTests.Data;
 using YandexTolokaNotification.Extensions;
+using System.Collections.ObjectModel;
 
 namespace YandexTolokaNotificationTests.ExtensionsTest
 {
@@ -11,7 +12,7 @@ namespace YandexTolokaNotificationTests.ExtensionsTest
     {
         [Theory]
         [ClassData(typeof(DataStringExtensionTest))]
-        public void ReturnNotNull(List<string> value1, List<string> value2)
+        public void ReturnNotNull(ObservableCollection<string> value1, ObservableCollection<string> value2)
         {
             Assert.NotNull(value1.GetCompareElement(value2));
         }
